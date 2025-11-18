@@ -24,3 +24,7 @@ args = "python main.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[nix]
+channel = "stable-25_05"
+packages = ["abseil-cpp", "glibcLocales", "gtest", "imagemagickBig", "sox", "tcpdump", "wireshark"]
