@@ -12,19 +12,24 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Run Application"
+args = "API Server"
 
 [[workflows.workflow]]
-name = "Run Application"
+name = "API Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "python api_server.py"
+waitForPort = 5000
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [nix]
 channel = "stable-25_05"
 packages = ["abseil-cpp", "glibcLocales", "gtest", "imagemagickBig", "oneDNN", "re2", "sox", "tcpdump", "wireshark"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

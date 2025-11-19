@@ -13,6 +13,14 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - Train/test splitting with deduplication and class balancing
 
 ## Recent Changes
+- **2025-11-19**: Created Flask API for Adalo/Glide integration
+  - Built POST /scan endpoint accepting Base64-encoded PCAP files
+  - Integrated calibrated ONNX model for real-time anomaly detection
+  - Returns JSON alerts with risk scores and detailed flow information
+  - Added health check and documentation endpoints
+  - Created comprehensive Adalo/Glide integration guide
+  - API server running on port 5000 with CORS support
+
 - **2025-11-19**: Retrained model with calibration improvements
   - Implemented weighted BCE loss (pos_weight=2.5) for better class separation
   - Added temperature scaling (T=1.5) for improved score calibration
