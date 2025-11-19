@@ -8,9 +8,12 @@ import numpy as np
 import pandas as pd
 from scapy.all import rdpcap
 from datetime import datetime
+from auth import init_auth, require_api_key
 
 app = Flask(__name__)
 CORS(app)
+
+auth_manager = init_auth(app)
 
 def process_pcap_to_graph(pcap_path):
     """
@@ -174,18 +177,22 @@ def generate_alerts(risk_scores, flow_details, threshold=50):
     return alerts, summary
 
 @app.route('/scan', methods=['POST'])
+@require_api_key
 def scan_pcap():
     """
     POST /scan endpoint for Adalo/Glide integration
     Accepts Base64-encoded PCAP file and returns JSON alerts
+    Requires X-API-Key header for authentication
     """
+    tmp_path = None
     try:
         data = request.get_json()
         
         if not data or 'file' not in data:
             return jsonify({
                 'success': False,
-                'error': 'Missing "file" field in request body. Expected Base64-encoded PCAP file.'
+                'error': 'Missing "file" field in request body. Expected Base64-encoded PCAP file.',
+                'error_code': 'MISSING_FILE'
             }), 400
         
         file_data = data['file']
@@ -198,7 +205,8 @@ def scan_pcap():
         except Exception as e:
             return jsonify({
                 'success': False,
-                'error': f'Invalid Base64 encoding: {str(e)}'
+                'error': f'Invalid Base64 encoding: {str(e)}',
+                'error_code': 'INVALID_BASE64'
             }), 400
         
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pcap') as tmp_file:
@@ -211,6 +219,11 @@ def scan_pcap():
             risk_scores = run_onnx_inference(node_features, edge_index, edge_attr)
             
             threshold = data.get('risk_threshold', 50)
+            try:
+                threshold = max(0, min(100, int(threshold)))
+            except (ValueError, TypeError):
+                threshold = 50
+            
             alerts, summary = generate_alerts(risk_scores, flow_details, threshold)
             
             response = {
@@ -223,18 +236,24 @@ def scan_pcap():
             return jsonify(response), 200
             
         finally:
-            if os.path.exists(tmp_path):
+            if tmp_path and os.path.exists(tmp_path):
                 os.unlink(tmp_path)
     
     except ValueError as e:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'error_code': 'INVALID_PCAP'
         }), 400
     except Exception as e:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
         return jsonify({
             'success': False,
-            'error': f'Internal server error: {str(e)}'
+            'error': 'Internal server error occurred',
+            'error_code': 'INTERNAL_ERROR'
         }), 500
 
 @app.route('/health', methods=['GET'])
@@ -253,9 +272,15 @@ def index():
         'name': 'ZeroTrustGNN API',
         'version': '1.0',
         'description': 'Network anomaly detection API using Graph Neural Networks',
+        'authentication': {
+            'required': 'Yes (except /health and /)',
+            'method': 'API Key via X-API-Key header',
+            'rate_limit': '10 requests per minute per API key'
+        },
         'endpoints': {
             'POST /scan': {
                 'description': 'Scan PCAP file for network anomalies',
+                'authentication': 'Required (X-API-Key header)',
                 'input': {
                     'file': 'Base64-encoded PCAP file (required)',
                     'risk_threshold': 'Alert threshold 0-100 (optional, default: 50)'
@@ -269,6 +294,7 @@ def index():
             },
             'GET /health': {
                 'description': 'Health check endpoint',
+                'authentication': 'Not required',
                 'output': {
                     'status': 'API status',
                     'model': 'ONNX model filename',
@@ -297,4 +323,4 @@ if __name__ == '__main__':
     print("Calibration: Benign <30/100, Malicious 70-95/100")
     print("="*70 + "\n")
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
