@@ -13,6 +13,20 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - Train/test splitting with deduplication and class balancing
 
 ## Recent Changes
+- **2025-11-19**: Implemented zero-trust security with API key authentication and rate limiting
+  - Created auth.py module with API key validation and sliding window rate limiter
+  - Integrated @require_api_key decorator on /scan endpoint
+  - Rate limiting: 10 requests per minute per API key (configurable)
+  - API keys stored securely in Replit Secrets (3 keys configured)
+  - Added structured error responses with error codes (MISSING_API_KEY, INVALID_API_KEY, RATE_LIMIT_EXCEEDED)
+  - Improved error handling with guaranteed temp file cleanup
+  - Enhanced input validation (risk threshold coercion 0-100)
+  - Disabled debug mode for production (debug=False)
+  - Created SECURITY_GUIDE.md with comprehensive security documentation
+  - Created ZEEK_INTEGRATION.md documenting Zeek as offline preprocessing tool
+  - Updated ADALO_GLIDE_INTEGRATION.md with API key authentication instructions
+  - Verified authentication and rate limiting working correctly via tests
+
 - **2025-11-19**: Created Flask API for Adalo/Glide integration
   - Built POST /scan endpoint accepting Base64-encoded PCAP files
   - Integrated calibrated ONNX model for real-time anomaly detection

@@ -70,13 +70,16 @@ class APIKeyAuth:
             self.valid_keys = set()
         
         if not self.valid_keys:
-            print("⚠️  WARNING: No API keys configured. API is unprotected!")
-            print("   Set API_KEYS environment variable with comma-separated keys")
+            raise ValueError(
+                "CRITICAL SECURITY ERROR: No API keys configured!\n"
+                "Set API_KEYS environment variable in Replit Secrets.\n"
+                "The API will not start without authentication configured."
+            )
     
     def validate_key(self, api_key):
-        """Validate API key"""
+        """Validate API key (fail-closed: denies all if no keys configured)"""
         if not self.valid_keys:
-            return True
+            return False
         
         return api_key in self.valid_keys
     
@@ -151,11 +154,9 @@ def init_auth(app):
     print("="*70)
     print("🔒 AUTHENTICATION & RATE LIMITING")
     print("="*70)
-    if auth_manager.valid_keys:
-        print(f"  ✓ API Keys: {len(auth_manager.valid_keys)} key(s) configured")
-    else:
-        print("  ⚠ API Keys: NONE (API is open - not recommended for production)")
+    print(f"  ✓ API Keys: {len(auth_manager.valid_keys)} key(s) configured")
     print(f"  ✓ Rate Limit: {auth_manager.rate_limiter.max_requests} requests per {auth_manager.rate_limiter.window_seconds//60} minute(s)")
+    print(f"  ✓ Security: Fail-closed (denies all if keys missing)")
     print("="*70 + "\n")
     
     return auth_manager

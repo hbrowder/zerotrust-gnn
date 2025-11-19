@@ -72,7 +72,10 @@ Adalo supports file uploads with Base64 encoding, making it the best choice for 
   - **Headers**: 
     ```
     Content-Type: application/json
+    X-API-Key: YOUR_API_KEY_HERE
     ```
+  
+**Important**: Replace `YOUR_API_KEY_HERE` with your actual API key from Replit Secrets.
 
 #### 3. Configure Request Body
 ```json
@@ -115,7 +118,7 @@ Add conditional visibility:
    - Trigger: Glide webhook when file uploaded
    - Action 1: Download file from Glide URL
    - Action 2: Convert to Base64
-   - Action 3: POST to `/scan` endpoint
+   - Action 3: POST to `/scan` endpoint with X-API-Key header
    - Action 4: Send results back to Glide via webhook
 
 2. **Configure Glide Workflow**:
@@ -130,7 +133,11 @@ If PCAP files are already Base64-encoded in Glide:
 1. **Add Call API Action**:
    - Method: POST
    - URL: `https://your-replit-app.repl.co/scan`
-   - Headers: `Content-Type: application/json`
+   - Headers: 
+     ```
+     Content-Type: application/json
+     X-API-Key: YOUR_API_KEY_HERE
+     ```
    - Body:
      ```json
      {
@@ -159,6 +166,7 @@ base64 -i your_file.pcap > pcap_base64.txt
 # Test API
 curl -X POST https://your-replit-app.repl.co/scan \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -d '{"file": "'"$(cat pcap_base64.txt)"'", "risk_threshold": 50}'
 ```
 
@@ -173,10 +181,13 @@ with open('traffic.pcap', 'rb') as f:
     pcap_base64 = base64.b64encode(f.read()).decode('utf-8')
 
 # Send request
-response = requests.post('https://your-replit-app.repl.co/scan', json={
-    'file': pcap_base64,
-    'risk_threshold': 50
-})
+response = requests.post('https://your-replit-app.repl.co/scan', 
+    headers={'X-API-Key': 'YOUR_API_KEY_HERE'},
+    json={
+        'file': pcap_base64,
+        'risk_threshold': 50
+    }
+)
 
 # Print results
 result = response.json()
@@ -262,12 +273,13 @@ for alert in result['alerts']:
 - Replace `your-replit-app.repl.co` with production URL
 - Test integration end-to-end
 
-### 3. Add Authentication (Optional)
-- Implement API key authentication for security
-- Add to Adalo Custom Action headers:
+### 3. Verify Authentication
+- API key authentication is **required** (already configured in setup)
+- Ensure your Adalo/Glide Custom Action includes:
   ```
-  Authorization: Bearer YOUR_API_KEY
+  X-API-Key: YOUR_API_KEY_HERE
   ```
+- Without this header, requests will return 401 Unauthorized
 
 ---
 
