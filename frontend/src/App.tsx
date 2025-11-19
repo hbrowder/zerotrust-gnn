@@ -11,12 +11,9 @@ function App() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [gdprConsent, setGdprConsent] = useState(false)
 
-  const handleConsentChange = (consented: boolean, newSessionId: string) => {
-    setGdprConsent(consented)
-    setSessionId(newSessionId)
+  const handleConsentChange = (_consented: boolean, _newSessionId: string) => {
+    // Consent state managed by GDPRConsent component
   }
 
   const handleScanComplete = (result: ScanResult) => {
