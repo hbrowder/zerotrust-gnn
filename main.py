@@ -30,17 +30,27 @@ def pcap_to_csv(pcap_file, csv_output, label='benign'):  # label: 'benign' or 'm
   df.to_csv(csv_output, index=False)
   print(f"Saved {len(df)} flows to {csv_output}")
 
-# Run it
-pcap_to_csv('http.cap', 'benign.csv', 'benign')  # Normal traffic
-pcap_to_csv('ctf-icmp.pcap', 'malicious.csv', 'malicious')  # Scan traffic
+# Check if CIC-IDS2017 dataset is available, otherwise use PCAP files
+if os.path.exists('cicids_traffic.csv'):
+    print("\n=== Using CIC-IDS2017 Dataset ===")
+    merged_df = pd.read_csv('cicids_traffic.csv')
+    merged_df.to_csv('all_traffic.csv', index=False)
+    print(f"Loaded {len(merged_df)} flows from cicids_traffic.csv")
+    print(f"  - Benign flows: {len(merged_df[merged_df['label'] == 0])}")
+    print(f"  - Malicious flows: {len(merged_df[merged_df['label'] == 1])}")
+else:
+    print("\n=== Using PCAP Files ===")
+    # Run it
+    pcap_to_csv('http.cap', 'benign.csv', 'benign')  # Normal traffic
+    pcap_to_csv('ctf-icmp.pcap', 'malicious.csv', 'malicious')  # Scan traffic
 
-# Merge the CSV files
-print("\nMerging CSV files...")
-merged_df = pd.concat([pd.read_csv('benign.csv'), pd.read_csv('malicious.csv')])
-merged_df.to_csv('all_traffic.csv', index=False)
-print(f"Merged {len(merged_df)} total flows into all_traffic.csv")
-print(f"  - Benign flows: {len(merged_df[merged_df['label'] == 0])}")
-print(f"  - Malicious flows: {len(merged_df[merged_df['label'] == 1])}")
+    # Merge the CSV files
+    print("\nMerging CSV files...")
+    merged_df = pd.concat([pd.read_csv('benign.csv'), pd.read_csv('malicious.csv')])
+    merged_df.to_csv('all_traffic.csv', index=False)
+    print(f"Merged {len(merged_df)} total flows into all_traffic.csv")
+    print(f"  - Benign flows: {len(merged_df[merged_df['label'] == 0])}")
+    print(f"  - Malicious flows: {len(merged_df[merged_df['label'] == 1])}")
 
 # Convert CSV to PyTorch Geometric graph
 def csv_to_graph(csv_file):
