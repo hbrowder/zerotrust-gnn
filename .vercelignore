@@ -5,6 +5,13 @@ __pycache__/
 .pytest_cache/
 *.log
 
+# Python dependency files (use requirements.txt only)
+pyproject.toml
+uv.lock
+poetry.lock
+Pipfile
+Pipfile.lock
+
 # Local environment files
 .env
 .env.local
