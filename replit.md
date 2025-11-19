@@ -16,6 +16,22 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - Dual workflow architecture (API Server + Frontend) ready for deployment
 
 ## Recent Changes
+
+- **2025-11-19**: Completed production security hardening with dynamic privacy compliance
+  - Implemented fully dynamic privacy messaging across all endpoints and UI
+  - Created /gdpr/config endpoint for real-time anonymization status
+  - Updated /gdpr/privacy-policy to derive all compliance claims from should_anonymize()
+  - Fixed consent banner to show actual runtime status (green ✓ or red ⚠)
+  - Updated footer to display dynamic compliance status from API response
+  - Fixed HSTS header to only send over HTTPS (prevents local testing issues)
+  - Moved audit logging after validation (no IP data logged, only metadata)
+  - Fixed consent session persistence with localStorage (no more random IDs)
+  - Created cleanup_scheduler.py for automated daily data retention cleanup
+  - Installed schedule library for GDPR data retention automation
+  - Zero hardcoded compliance claims - all messaging reflects actual configuration
+  - Production-ready with zero TypeScript errors, both workflows running
+
+## Recent Changes
 - **2025-11-19**: Built React web dashboard with real-time graph visualizations
   - Scaffolded React 19 + TypeScript + Vite frontend on port 5000 (webview)
   - Implemented FileUpload component with drag-and-drop PCAP file support

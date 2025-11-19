@@ -8,6 +8,7 @@ interface GDPRConsentProps {
 export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
   const [showBanner, setShowBanner] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
+  const [privacyConfig, setPrivacyConfig] = useState<{anonymization: boolean; gdpr_compliant: boolean} | null>(null)
   const [sessionId] = useState(() => {
     const existing = localStorage.getItem('gdpr_session_id')
     if (existing) return existing
@@ -20,6 +21,18 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
   useEffect(() => {
     const consent = localStorage.getItem('gdpr_consent')
     const consentSessionId = localStorage.getItem('gdpr_session_id')
+    
+    fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/gdpr/config`)
+      .then(res => res.json())
+      .then(data => {
+        setPrivacyConfig({
+          anonymization: data.anonymization_enabled === true,
+          gdpr_compliant: data.gdpr_compliant === true
+        })
+      })
+      .catch(() => {
+        setPrivacyConfig({ anonymization: false, gdpr_compliant: false })
+      })
     
     if (!consent) {
       setShowBanner(true)
@@ -122,22 +135,32 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
 
         <div className="space-y-4">
           <p className="text-gray-300 text-sm">
-            We respect your privacy. This application anonymizes all IP addresses and provides full GDPR compliance.
-            Your data is automatically deleted after 30 days.
+            We respect your privacy. 
+            {privacyConfig ? (
+              privacyConfig.anonymization 
+                ? ' IP addresses are anonymized for GDPR compliance.' 
+                : ' WARNING: IP anonymization is currently disabled.'
+            ) : ' Loading privacy settings...'}
+            {' '}Your data is automatically deleted after 30 days.
           </p>
 
-          {showDetails && (
+          {showDetails && privacyConfig && (
             <div className="bg-gray-800/50 rounded-lg p-4 text-sm text-gray-300 space-y-2">
               <h4 className="font-semibold text-white mb-2">What we collect (only with your consent):</h4>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Audit logs of your API requests (for security monitoring)</li>
                 <li>Session analytics (anonymized usage patterns)</li>
               </ul>
-              <h4 className="font-semibold text-white mt-3 mb-2">What we don't collect:</h4>
+              <h4 className="font-semibold text-white mt-3 mb-2">Data Protection:</h4>
               <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Personal identifying information (PII)</li>
-                <li>Raw IP addresses (all IPs are pseudonymized using SHA-256)</li>
-                <li>Cookies or tracking data</li>
+                <li>Personal identifying information (PII): Not collected</li>
+                {privacyConfig.anonymization ? (
+                  <li className="text-green-400">✓ IP addresses: Pseudonymized using SHA-256 hashing</li>
+                ) : (
+                  <li className="text-red-400">⚠ WARNING: IP addresses are NOT anonymized - raw IPs exposed</li>
+                )}
+                <li>Cookies or tracking data: Not used</li>
+                <li>PCAP files: Deleted immediately after processing</li>
               </ul>
               <h4 className="font-semibold text-white mt-3 mb-2">Your rights:</h4>
               <ul className="list-disc list-inside space-y-1 ml-2">

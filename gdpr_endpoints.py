@@ -4,11 +4,26 @@ Privacy policy, consent management, and right to be forgotten
 """
 from flask import Blueprint, request, jsonify
 from gdpr_consent import consent_manager
+from anonymization import should_anonymize
 import os
 
 gdpr_bp = Blueprint('gdpr', __name__)
 
 DATA_RETENTION_DAYS = int(os.environ.get('DATA_RETENTION_DAYS', '30'))
+
+@gdpr_bp.route('/config', methods=['GET'])
+def get_runtime_config():
+    """
+    GET /gdpr/config
+    Returns real-time privacy configuration
+    """
+    anonymization_enabled = should_anonymize()
+    return jsonify({
+        'anonymization_enabled': anonymization_enabled,
+        'gdpr_compliant': anonymization_enabled,
+        'data_retention_days': DATA_RETENTION_DAYS,
+        'timestamp': os.environ.get('ANONYMIZE_DATA', 'true')
+    }), 200
 
 @gdpr_bp.route('/privacy-policy', methods=['GET'])
 def privacy_policy():
@@ -16,8 +31,10 @@ def privacy_policy():
     GET /gdpr/privacy-policy
     Returns privacy policy and GDPR compliance information
     """
+    anonymization_enabled = should_anonymize()
     return jsonify({
         'privacy_policy': {
+            'gdpr_compliant': anonymization_enabled,
             'effective_date': '2025-11-19',
             'last_updated': '2025-11-19',
             'controller': 'ZeroTrustGNN',
@@ -37,10 +54,9 @@ def privacy_policy():
                     'PCAP files (deleted immediately after processing)'
                 ],
                 'ip_address_handling': {
-                    'anonymization_enabled': 'Enabled by default (ANONYMIZE_DATA=true)',
-                    'when_enabled': 'All IP addresses pseudonymized with SHA-256 before returning in API responses',
-                    'when_disabled': 'Raw IP addresses included in responses - NOT GDPR COMPLIANT',
-                    'recommendation': 'Keep anonymization enabled for GDPR compliance'
+                    'anonymization_enabled': 'Enabled' if anonymization_enabled else 'Disabled - NOT GDPR COMPLIANT',
+                    'current_status': 'All IP addresses pseudonymized with SHA-256' if anonymization_enabled else 'Raw IP addresses exposed in API responses',
+                    'recommendation': 'Keep anonymization enabled for GDPR compliance' if not anonymization_enabled else 'Anonymization is properly configured'
                 },
                 'ip_anonymization': {
                     'method': 'SHA-256 hashing with salt',
@@ -99,7 +115,8 @@ def privacy_policy():
         },
         
         'compliance_status': {
-            'gdpr_compliant': True,
+            'gdpr_compliant': anonymization_enabled,
+            'compliance_note': 'GDPR compliant when IP anonymization is enabled' if anonymization_enabled else 'NOT GDPR COMPLIANT - IP anonymization is disabled',
             'data_protection_officer': 'Not required (processing does not meet Article 37 thresholds)',
             'dpia_completed': True,
             'legitimate_interest_assessment': True
