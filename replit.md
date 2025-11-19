@@ -10,6 +10,15 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - DataLoaders configured for batch processing
 
 ## Recent Changes
+- **2025-11-19**: Integrated CIC-IDS2017 dataset for improved training diversity
+  - Created sample dataset generator with 8 attack types (500 flows)
+  - Built integration script to convert CIC-IDS2017 format to pipeline format
+  - Implemented robust column mapping with exact-match priority
+  - Added safe type conversion with Infinity/NaN handling
+  - Fixed byte mapping to use actual packet bytes instead of duration/rate fields
+  - Improved dataset diversity: 68 nodes, 320 training edges (160x improvement over PCAP)
+  - Created comprehensive documentation for using full CIC-IDS2017 dataset (2.8M+ flows)
+
 - **2025-11-19**: Implemented train/test split with deduplication
   - Added scikit-learn for dataset splitting
   - Implemented deduplication to prevent data leakage (removes duplicate flows before splitting)
@@ -64,7 +73,9 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
   - Normal datasets: 80/20 train/test split with stratification
   - Small datasets (<10 samples): Manual split ensuring ≥1 sample per class in each split
   - Validation: Post-split check ensures both train and test contain all classes
-- **Current Dataset**: 16 unique flows after deduplication (14 benign HTTP, 2 malicious ICMP)
+- **Current Dataset**: 500 flows from CIC-IDS2017 sample (200 benign, 300 malicious across 8 attack types)
+- **Dataset Options**: Can use PCAP files (16 unique flows) or CIC-IDS2017 dataset (automatically detected)
+- **CIC-IDS2017 Benefits**: 160x more training edges, 8 attack types, 68 unique IP nodes
 
 ## User Preferences
 - Not yet specified
