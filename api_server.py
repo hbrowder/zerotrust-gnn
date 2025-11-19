@@ -18,11 +18,15 @@ CORS(app)
 
 app.register_blueprint(gdpr_bp, url_prefix='/gdpr')
 
-try:
-    from cleanup_scheduler import start_cleanup_scheduler
-    start_cleanup_scheduler()
-except Exception as e:
-    print(f"Warning: Could not start cleanup scheduler: {e}")
+is_vercel = os.environ.get('VERCEL', False)
+if not is_vercel:
+    try:
+        from cleanup_scheduler import start_cleanup_scheduler
+        start_cleanup_scheduler()
+    except Exception as e:
+        print(f"Warning: Could not start cleanup scheduler: {e}")
+else:
+    print("Running on Vercel - cleanup scheduler disabled (use Vercel Cron instead)")
 
 @app.after_request
 def add_security_headers(response):

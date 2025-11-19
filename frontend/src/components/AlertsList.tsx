@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AlertCircle, X, ArrowRight } from 'lucide-react'
+import { analytics } from '../utils/mixpanel'
 import type { Alert } from '../types'
 
 interface AlertsListProps {
@@ -50,7 +51,13 @@ export default function AlertsList({ alerts }: AlertsListProps) {
             <div
               key={alert.flow_id}
               className={`border rounded-lg p-4 cursor-pointer transition-all hover:scale-[1.01] ${getRiskColor(alert.risk_level)}`}
-              onClick={() => setSelectedAlert(alert)}
+              onClick={() => {
+                const consent = localStorage.getItem('gdpr_consent')
+                if (consent === 'true') {
+                  analytics.trackAlertClick(alert.risk_level, alert.risk_score)
+                }
+                setSelectedAlert(alert)
+              }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">

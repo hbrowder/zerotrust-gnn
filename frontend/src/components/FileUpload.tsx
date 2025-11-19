@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Upload, File } from 'lucide-react'
 import { scanPcapFile } from '../utils/api'
+import { analytics } from '../utils/mixpanel'
 import type { ScanResult } from '../types'
 
 interface FileUploadProps {
@@ -45,6 +46,17 @@ export default function FileUpload({ onScanComplete, onScanStart, onError }: Fil
     try {
       onScanStart()
       const result = await scanPcapFile(selectedFile)
+      
+      const consent = localStorage.getItem('gdpr_consent')
+      if (consent === 'true') {
+        analytics.trackFileUpload(selectedFile.size)
+        analytics.trackScanComplete(
+          result.alerts.length,
+          result.summary.high_risk_flows,
+          result.privacy?.data_anonymized || false
+        )
+      }
+      
       onScanComplete(result)
     } catch (error: any) {
       onError(error.message)

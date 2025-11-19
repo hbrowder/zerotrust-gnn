@@ -17,6 +17,18 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 
 ## Recent Changes
 
+- **2025-11-19**: Added Vercel deployment support and Mixpanel analytics integration
+  - Restructured Flask backend for Vercel serverless deployment (created /api/index.py)
+  - Created vercel.json configuration for full-stack deployment
+  - Integrated Mixpanel analytics SDK (free tier: 1M events/month)
+  - Implemented event tracking for all key user actions (uploads, scans, alerts, consent)
+  - Created comprehensive Vercel deployment documentation (VERCEL_DEPLOYMENT.md)
+  - Added Vercel Cron cleanup endpoint (/api/cleanup.py) for GDPR data retention
+  - Disabled cleanup scheduler on Vercel (use external cron for free tier)
+  - Updated frontend .env.example with Mixpanel token configuration
+  - All analytics gracefully degrade if Mixpanel token not configured
+  - Production-ready for free hosting on Vercel (frontend + backend)
+
 - **2025-11-19**: Completed production security hardening with dynamic privacy compliance
   - Implemented fully dynamic privacy messaging across all endpoints and UI
   - Created /gdpr/config endpoint for real-time anonymization status

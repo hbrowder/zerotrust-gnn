@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Shield, X, Check } from 'lucide-react'
+import { analytics } from '../utils/mixpanel'
 
 interface GDPRConsentProps {
   onConsentChange: (consented: boolean, sessionId: string) => void
@@ -37,6 +38,9 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
     if (!consent) {
       setShowBanner(true)
     } else if (consentSessionId) {
+      if (consent === 'true') {
+        analytics.init()
+      }
       onConsentChange(consent === 'true', consentSessionId)
     }
   }, [onConsentChange])
@@ -61,6 +65,11 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
         localStorage.setItem('gdpr_consent', accepted.toString())
         localStorage.setItem('gdpr_session_id', sessionId)
         localStorage.setItem('gdpr_consent_date', new Date().toISOString())
+        
+        if (accepted) {
+          analytics.init()
+          analytics.trackConsentGiven(consentTypes)
+        }
         
         setShowBanner(false)
         onConsentChange(accepted, sessionId)
@@ -87,6 +96,11 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
         })
 
         if (response.ok) {
+          const consent = localStorage.getItem('gdpr_consent')
+          if (consent === 'true') {
+            analytics.trackDataDeletion()
+          }
+          
           localStorage.removeItem('gdpr_consent')
           localStorage.removeItem('gdpr_session_id')
           localStorage.removeItem('gdpr_consent_date')
