@@ -11,6 +11,14 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - Train/test splitting with deduplication and class balancing
 
 ## Recent Changes
+- **2025-11-19**: Exported trained model to ONNX format
+  - Created ONNX-compatible wrapper for PyTorch Geometric models
+  - Exported model to gnn_model.onnx (84KB, 62% smaller than PyTorch)
+  - Supports dynamic input sizes (flexible num_nodes and num_edges)
+  - Verified ONNX model produces identical predictions to PyTorch (0.0 difference)
+  - Created export script (export_to_onnx.py) and test script (test_onnx_inference.py)
+  - ONNX model ready for production deployment with ONNX Runtime
+
 - **2025-11-19**: Completed GNN model training
   - Implemented GCN-based anomaly detector with edge-level classification
   - Achieved **86.25% test accuracy** (82% precision, 92% recall, 87% F1)
@@ -22,7 +30,6 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
   - Test dataset: 80 edges (40 benign, 40 malicious)
   - Sample results: Benign flows scored 0.2-42.9/100, malicious flows scored 95.4-99.5/100
 
-- **2025-11-19**: Integrated CIC-IDS2017 dataset for improved training diversity
 - **2025-11-19**: Integrated CIC-IDS2017 dataset for improved training diversity
   - Created sample dataset generator with 8 attack types (500 flows)
   - Built integration script to convert CIC-IDS2017 format to pipeline format

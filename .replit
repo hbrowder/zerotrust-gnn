@@ -27,4 +27,4 @@ outputType = "console"
 
 [nix]
 channel = "stable-25_05"
-packages = ["abseil-cpp", "glibcLocales", "gtest", "imagemagickBig", "sox", "tcpdump", "wireshark"]
+packages = ["abseil-cpp", "glibcLocales", "gtest", "imagemagickBig", "oneDNN", "re2", "sox", "tcpdump", "wireshark"]
