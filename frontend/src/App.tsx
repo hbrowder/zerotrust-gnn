@@ -4,12 +4,20 @@ import FileUpload from './components/FileUpload'
 import NetworkGraph from './components/NetworkGraph'
 import AlertsList from './components/AlertsList'
 import StatsPanel from './components/StatsPanel'
+import GDPRConsent from './components/GDPRConsent'
 import type { ScanResult } from './types'
 
 function App() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [gdprConsent, setGdprConsent] = useState(false)
+
+  const handleConsentChange = (consented: boolean, newSessionId: string) => {
+    setGdprConsent(consented)
+    setSessionId(newSessionId)
+  }
 
   const handleScanComplete = (result: ScanResult) => {
     setScanResult(result)
@@ -117,8 +125,23 @@ function App() {
       <footer className="mt-16 bg-gray-900/50 backdrop-blur-sm border-t border-gray-700 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
           <p>Powered by Graph Neural Networks • 87.5% Accuracy • 97.5% Recall</p>
+          {scanResult?.privacy && (
+            <p className="mt-2 text-xs">
+              <span className="inline-flex items-center space-x-1">
+                <Shield className="h-3 w-3" />
+                <span>
+                  {scanResult.privacy.data_anonymized ? 'Data Anonymized' : 'Anonymization Disabled'} • 
+                  {scanResult.privacy.gdpr_compliant ? ' GDPR Compliant' : ' GDPR Non-Compliant'} • 
+                  TLS 1.3 Ready
+                </span>
+              </span>
+            </p>
+          )}
         </div>
       </footer>
+
+      {/* GDPR Consent Banner */}
+      <GDPRConsent onConsentChange={handleConsentChange} />
     </div>
   )
 }

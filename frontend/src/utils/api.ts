@@ -15,11 +15,14 @@ export const scanPcapFile = async (file: File): Promise<ScanResult> => {
             .reduce((data, byte) => data + String.fromCharCode(byte), '')
         )
         
+        const sessionId = localStorage.getItem('gdpr_session_id')
+        
         const response = await axios.post<ScanResult>(
           `${API_BASE_URL}/scan`,
           {
             file: base64,
-            risk_threshold: 50
+            risk_threshold: 50,
+            session_id: sessionId
           },
           {
             headers: {

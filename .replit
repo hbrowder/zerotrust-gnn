@@ -53,3 +53,8 @@ externalPort = 80
 [[ports]]
 localPort = 8000
 externalPort = 8000
+
+[deployment]
+deploymentTarget = "vm"
+run = ["gunicorn", "-c", "gunicorn.conf.py", "api_server:app"]
+build = ["pip", "install", "-r", "requirements.txt"]

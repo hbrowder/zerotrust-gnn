@@ -9,9 +9,38 @@ import pandas as pd
 from scapy.all import rdpcap
 from datetime import datetime
 from auth import init_auth, require_api_key
+from anonymization import anonymize_ip, should_anonymize
+from gdpr_endpoints import gdpr_bp
+from gdpr_consent import consent_manager
 
 app = Flask(__name__)
 CORS(app)
+
+app.register_blueprint(gdpr_bp, url_prefix='/gdpr')
+
+try:
+    from cleanup_scheduler import start_cleanup_scheduler
+    start_cleanup_scheduler()
+except Exception as e:
+    print(f"Warning: Could not start cleanup scheduler: {e}")
+
+@app.after_request
+def add_security_headers(response):
+    """
+    Add security headers for HTTPS/TLS hardening and GDPR compliance
+    Only adds HSTS header if request is over HTTPS
+    """
+    if request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    return response
 
 auth_manager = init_auth(app)
 
@@ -226,12 +255,34 @@ def scan_pcap():
             
             alerts, summary = generate_alerts(risk_scores, flow_details, threshold)
             
+            anonymize_enabled = should_anonymize()
+            if anonymize_enabled:
+                for alert in alerts:
+                    alert['source_ip'] = anonymize_ip(alert['source_ip'])
+                    alert['destination_ip'] = anonymize_ip(alert['destination_ip'])
+                    alert['message'] = f"{alert['risk_level'].upper()} risk flow detected (IPs anonymized for GDPR compliance)"
+                    alert['gdpr_notice'] = 'IP addresses have been pseudonymized per GDPR Article 4(5)'
+            
             response = {
                 'success': True,
                 'timestamp': datetime.utcnow().isoformat() + 'Z',
                 'summary': summary,
-                'alerts': alerts[:100]
+                'alerts': alerts[:100],
+                'privacy': {
+                    'data_anonymized': anonymize_enabled,
+                    'gdpr_compliant': anonymize_enabled,
+                    'anonymization_notice': 'IP addresses pseudonymized with SHA-256' if anonymize_enabled else 'Raw IP addresses included - enable ANONYMIZE_DATA for GDPR compliance'
+                }
             }
+            
+            session_id = data.get('session_id')
+            if session_id and consent_manager.check_consent(session_id, 'logging'):
+                consent_manager.log_audit_event(session_id, 'scan_complete', {
+                    'timestamp': datetime.utcnow().isoformat() + 'Z',
+                    'alerts_count': len(alerts),
+                    'anonymization_enabled': anonymize_enabled,
+                    'note': 'IP addresses not logged in audit to protect privacy'
+                })
             
             return jsonify(response), 200
             

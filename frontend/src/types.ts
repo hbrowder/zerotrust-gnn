@@ -26,4 +26,9 @@ export interface ScanResult {
   timestamp: string
   summary: Summary
   alerts: Alert[]
+  privacy?: {
+    data_anonymized: boolean
+    gdpr_compliant: boolean
+    anonymization_notice: string
+  }
 }
