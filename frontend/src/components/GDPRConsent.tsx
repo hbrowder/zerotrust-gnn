@@ -62,17 +62,24 @@ export default function GDPRConsent({ onConsentChange }: GDPRConsentProps) {
       })
 
       if (response.ok) {
-        localStorage.setItem('gdpr_consent', accepted.toString())
-        localStorage.setItem('gdpr_session_id', sessionId)
-        localStorage.setItem('gdpr_consent_date', new Date().toISOString())
-        
         if (accepted) {
+          localStorage.setItem('gdpr_consent', 'true')
+          localStorage.setItem('gdpr_session_id', sessionId)
+          localStorage.setItem('gdpr_consent_date', new Date().toISOString())
+          
           analytics.init()
           analytics.trackConsentGiven(consentTypes)
+          
+          onConsentChange(true, sessionId)
+        } else {
+          localStorage.removeItem('gdpr_consent')
+          localStorage.removeItem('gdpr_session_id')
+          localStorage.removeItem('gdpr_consent_date')
+          
+          onConsentChange(false, '')
         }
         
         setShowBanner(false)
-        onConsentChange(accepted, sessionId)
       }
     } catch (error) {
       console.error('Failed to record consent:', error)
