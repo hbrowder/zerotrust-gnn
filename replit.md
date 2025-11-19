@@ -8,11 +8,27 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
 - ✅ **87.5% test accuracy** with excellent score separation
 - ✅ **Benign traffic: 17.8-23.0/100 risk** (target: <30)
 - ✅ **Malicious traffic: 80.7-93.4/100 risk** (target: 70-95)
+- ✅ **React web dashboard** with real-time visualizations and zero TypeScript errors
 - Complete PCAP-to-graph data pipeline with CIC-IDS2017 integration
 - GCN-based edge-level classification with calibrated risk scoring
 - Train/test splitting with deduplication and class balancing
+- Flask REST API with zero-trust security (API keys + rate limiting)
+- Dual workflow architecture (API Server + Frontend) ready for deployment
 
 ## Recent Changes
+- **2025-11-19**: Built React web dashboard with real-time graph visualizations
+  - Scaffolded React 19 + TypeScript + Vite frontend on port 5000 (webview)
+  - Implemented FileUpload component with drag-and-drop PCAP file support
+  - Created NetworkGraph component using Recharts for risk score distribution visualization
+  - Built AlertsList component with modal details for each network flow alert
+  - Developed StatsPanel component displaying total/high/medium/low risk flow counts
+  - Configured Tailwind CSS v4 with @tailwindcss/postcss for modern UI styling
+  - Dark gradient theme (gray-900 → blue-900 → gray-900) with glassmorphic components
+  - API integration with Base64 PCAP encoding and zero-trust authentication
+  - Environment-based configuration for API URL and API key (.env file)
+  - Production-ready with type-safe imports and TypeScript strict mode
+  - Dual workflow architecture: API Server (port 8000, console) + Frontend (port 5000, webview)
+
 - **2025-11-19**: Implemented zero-trust security with API key authentication and rate limiting
   - Created auth.py module with API key validation and sliding window rate limiter
   - Integrated @require_api_key decorator on /scan endpoint
@@ -91,17 +107,31 @@ ZeroTrustGNN is a Python-based Graph Neural Network system that processes networ
   - Installed ML/GNN dependencies: torch, torch-geometric, pandas, scapy, onnx, scikit-learn
 
 ## Project Architecture
-- Language: Python 3.11
-- Structure: Single-file pipeline in main.py (ready for modularization)
-- Data Flow: PCAP → CSV → Deduplication → Balancing → Train/Test Split → Graphs → DataLoader
+- **Backend**: Python 3.11 Flask API (port 8000, console output)
+- **Frontend**: React 19 + TypeScript + Vite (port 5000, webview)
+- **ML Pipeline**: PCAP → CSV → Deduplication → Balancing → Train/Test Split → Graphs → GNN → ONNX
+- **Deployment**: Dual workflow (API Server + Frontend) with environment-based configuration
 
-### Dependencies
+### Backend Dependencies (Python)
   - torch (2.9.1+cpu) - Deep learning framework
   - torch-geometric (2.7.0) - Graph Neural Network library
   - pandas (2.3.3) - Data manipulation and analysis
   - scapy (2.6.1) - Network packet manipulation and PCAP parsing
   - onnx (1.19.1) - Open Neural Network Exchange format
+  - onnxruntime (1.21.0) - ONNX model inference engine
   - scikit-learn - Train/test splitting and data preprocessing
+  - flask (3.1.0) - REST API framework
+  - flask-cors (5.0.0) - Cross-origin resource sharing
+
+### Frontend Dependencies (Node.js)
+  - react (19.0.0) - UI library
+  - typescript (5.7.2) - Type-safe JavaScript
+  - vite (7.2.2) - Fast build tool and dev server
+  - tailwindcss (4.1.7) - Utility-first CSS framework
+  - @tailwindcss/postcss - PostCSS plugin for Tailwind v4
+  - recharts (2.15.2) - React charting library for network graphs
+  - lucide-react (0.469.0) - Icon library
+  - axios (1.7.9) - HTTP client for API calls
 
 ### Graph Representation
 - **Nodes**: Unique IP addresses in the network
