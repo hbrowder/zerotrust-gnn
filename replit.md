@@ -1,29 +1,70 @@
 # ZeroTrustGNN
 
 ## Overview
-ZeroTrustGNN is a Python project created on November 18, 2025. The project focuses on Graph Neural Networks (GNN) with Zero Trust security principles.
+ZeroTrustGNN is a Python-based Graph Neural Network system that processes network traffic from PCAP files and converts them into graph representations for anomaly detection. The system distinguishes between benign and malicious network traffic using GNN techniques with Zero Trust security principles.
 
 ## Current State
-- Basic Python 3.11 environment set up
-- Initial project structure created
-- Main entry point established in `main.py`
+- Complete PCAP-to-graph data pipeline implemented
+- Train/test splitting with deduplication and class balancing
+- PyTorch Geometric graph structures ready for GNN model training
+- DataLoaders configured for batch processing
 
 ## Recent Changes
+- **2025-11-19**: Implemented train/test split with deduplication
+  - Added scikit-learn for dataset splitting
+  - Implemented deduplication to prevent data leakage (removes duplicate flows before splitting)
+  - Added class balancing using undersampling without replacement
+  - Created manual split logic for small datasets with validation
+  - Implemented post-split validation to ensure both train and test contain all classes
+  - Set up separate DataLoaders for training and testing graphs
+
+- **2025-11-18**: Initial data pipeline
+  - Implemented PCAP-to-CSV conversion supporting TCP, UDP, and ICMP protocols
+  - Created PyTorch Geometric graph structure with IP nodes and flow edges
+  - Computed role-specific node features (6 features per node)
+  - Processed 2 PCAP files: http.cap (benign) and ctf-icmp.pcap (malicious)
+
 - **2025-11-18**: Initial project setup
   - Installed Python 3.11
   - Created basic project structure
-  - Added README and gitignore
-  - Installed ML/GNN dependencies: torch, torch-geometric, pandas, scapy, onnx
+  - Installed ML/GNN dependencies: torch, torch-geometric, pandas, scapy, onnx, scikit-learn
 
 ## Project Architecture
 - Language: Python 3.11
-- Structure: Simple modular design with main.py as entry point
-- Dependencies:
+- Structure: Single-file pipeline in main.py (ready for modularization)
+- Data Flow: PCAP → CSV → Deduplication → Balancing → Train/Test Split → Graphs → DataLoader
+
+### Dependencies
   - torch (2.9.1+cpu) - Deep learning framework
   - torch-geometric (2.7.0) - Graph Neural Network library
   - pandas (2.3.3) - Data manipulation and analysis
-  - scapy (2.6.1) - Network packet manipulation
+  - scapy (2.6.1) - Network packet manipulation and PCAP parsing
   - onnx (1.19.1) - Open Neural Network Exchange format
+  - scikit-learn - Train/test splitting and data preprocessing
+
+### Graph Representation
+- **Nodes**: Unique IP addresses in the network
+- **Edges**: Network flows between IPs (directed)
+- **Node Features** (6 per node):
+  1. Average source port (when IP is source)
+  2. Average destination port (when IP is destination)
+  3. Protocol diversity (number of unique protocols used)
+  4. Total bytes sent
+  5. Number of flows as source
+  6. Number of flows as destination
+- **Edge Features** (3 per edge):
+  1. Bytes transferred
+  2. Protocol (TCP=6, UDP=17, ICMP=1)
+  3. Label (0=benign, 1=malicious)
+
+### Data Pipeline Features
+- **Deduplication**: Removes duplicate flows based on (src_ip, dst_ip, src_port, dst_port, bytes, protocol)
+- **Balancing**: Undersamples majority class without replacement to match minority class size
+- **Splitting**: 
+  - Normal datasets: 80/20 train/test split with stratification
+  - Small datasets (<10 samples): Manual split ensuring ≥1 sample per class in each split
+  - Validation: Post-split check ensures both train and test contain all classes
+- **Current Dataset**: 16 unique flows after deduplication (14 benign HTTP, 2 malicious ICMP)
 
 ## User Preferences
 - Not yet specified
